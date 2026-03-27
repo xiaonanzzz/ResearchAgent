@@ -1,0 +1,37 @@
+# Makefile for exp-<idea-name>
+#
+# Two required targets:
+#   build - Install dependencies, prepare data, generate fingerprint.json
+#   run   - Execute the experiment (must be deterministic)
+#
+# Usage:
+#   make build    # first time setup
+#   make run      # run the experiment
+
+# ─── Configuration ───────────────────────────────────────────────────────────
+
+SEED       := 42
+OUTPUT_DIR := output
+CONFIG     := config.yaml
+
+# ─── Targets ─────────────────────────────────────────────────────────────────
+
+.PHONY: build run clean
+
+build:
+	# Install dependencies (choose one approach):
+	# pip install -r requirements.txt
+	# uv sync
+	#
+	# Prepare data (download, link, preprocess):
+	# python prepare_data.py
+	#
+	# Generate environment fingerprint (must be last step):
+	python generate_fingerprint.py
+
+run:
+	mkdir -p $(OUTPUT_DIR)
+	python train.py --config $(CONFIG) --seed $(SEED) --output-dir $(OUTPUT_DIR) 2>&1 | tee $(OUTPUT_DIR)/run.log
+
+clean:
+	rm -rf $(OUTPUT_DIR)
