@@ -1,12 +1,14 @@
 # Makefile for exp-<idea-name>
 #
-# Two required targets:
-#   build - Install dependencies, prepare data, generate fingerprint.json
-#   run   - Execute the experiment (must be deterministic)
+# Three required targets:
+#   build    - Install dependencies, prepare data
+#   run      - Execute the experiment (must be deterministic)
+#   evaluate - Run evaluation using a shared evaluation protocol
 #
 # Usage:
-#   make build    # first time setup
-#   make run      # run the experiment
+#   make build       # first time setup
+#   make run         # run the experiment
+#   make evaluate    # evaluate outputs
 
 # ─── Configuration ───────────────────────────────────────────────────────────
 
@@ -16,22 +18,20 @@ CONFIG     := config.yaml
 
 # ─── Targets ─────────────────────────────────────────────────────────────────
 
-.PHONY: build run clean
+.PHONY: build run evaluate clean
 
 build:
 	# Install dependencies (choose one approach):
 	# pip install -r requirements.txt
 	# uv sync
-	#
-	# Prepare data (download, link, preprocess):
-	# python prepare_data.py
-	#
-	# Generate environment fingerprint (must be last step):
-	python generate_fingerprint.py
 
 run:
 	mkdir -p $(OUTPUT_DIR)
 	python train.py --config $(CONFIG) --seed $(SEED) --output-dir $(OUTPUT_DIR) 2>&1 | tee $(OUTPUT_DIR)/run.log
+
+evaluate:
+	# run_eval.py imports data & eval protocols via sys.path and calls evaluate(dataset, predictions)
+	python run_eval.py --output $(OUTPUT_DIR)/eval_results.json
 
 clean:
 	rm -rf $(OUTPUT_DIR)
